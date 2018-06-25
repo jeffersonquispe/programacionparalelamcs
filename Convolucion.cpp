@@ -110,26 +110,6 @@ void convolucionPar(int ** output, int ** input, int ** kernel, int nInput, int 
 			}
 		}
 
-	#pragma omp for schedule(dynamic)
-		for (i = 0; i < mitad; i++)
-		{
-			for (j = 0; j < mitad; j++)
-			{
-				acumulador = 0; k = 0;
-				for (m = 0; m < nkernel; m++)
-				{
-					for (n = 0; n < nkernel; n++)
-					{
-						if (i - mitad + m >= 0 && i - mitad + m < nFilas &&  j - mitad + n >= 0 && j - mitad + n < nFilas) {
-							k++;
-							acumulador += kernel[m][n] * input[i - mitad + m][j - mitad + n];
-						}
-						
-					}
-				}
-				output[i][j] = acumulador / k;
-			}
-		}
 
 	#pragma omp for schedule(dynamic)
 		for (i = 0; i < mitad; ++i) // Filas
@@ -152,7 +132,50 @@ void convolucionPar(int ** output, int ** input, int ** kernel, int nInput, int 
 					output[i][j] = acumulador / k;				
 			}
 		}
-
+	
+	#pragma omp for schedule(dynamic)
+		for (i = 0; i < mitad; i++)
+		{
+			for (j = 0; j < mitad; j++)
+			{
+				acumulador = 0; k = 0;
+				for (m = 0; m < nkernel; m++)
+				{
+					for (n = 0; n < nkernel; n++)
+					{
+						if (i - mitad + m >= 0 && i - mitad + m < nFilas &&  j - mitad + n >= 0 && j - mitad + n < nFilas) {
+							k++;
+							acumulador += kernel[m][n] * input[i - mitad + m][j - mitad + n];
+						}
+						
+					}
+				}
+				output[i][j] = acumulador / k;
+			}
+		}
+	
+	#pragma omp for schedule(dynamic)
+	for (i = matrizborde; i < nInput; ++i) // Filas
+	{
+		for (j = matrizborde; j < nInput; ++j) // Columnas
+		{
+				acumulador = 0; k = 0;
+				for (m = 0; m < nkernel; ++m) // Filas del Kernel
+				{
+					for (n = 0; n < nkernel; ++n) // Columnas del kernel
+					{
+						// validar limites de la imagen 00000
+						if (i - mitad + m >= 0 && i - mitad + m < nFilas &&  j - mitad + n >= 0 && j - mitad + n < nFilas)
+						{
+							k++;
+							acumulador += input[i - mitad + m][j - mitad + n] * kernel[m][n];
+						}
+					}
+				}
+				output[i][j] = acumulador / k;
+			}
+		}
+	
 	#pragma omp for schedule(dynamic)
 		for (i = matrizborde; i < nInput; ++i) // Filas
 		{
@@ -176,27 +199,7 @@ void convolucionPar(int ** output, int ** input, int ** kernel, int nInput, int 
 		}
 
 
-	#pragma omp for schedule(dynamic)
-	for (i = matrizborde; i < nInput; ++i) // Filas
-	{
-		for (j = matrizborde; j < nInput; ++j) // Columnas
-		{
-				acumulador = 0; k = 0;
-				for (m = 0; m < nkernel; ++m) // Filas del Kernel
-				{
-					for (n = 0; n < nkernel; ++n) // Columnas del kernel
-					{
-						// validar limites de la imagen 00000
-						if (i - mitad + m >= 0 && i - mitad + m < nFilas &&  j - mitad + n >= 0 && j - mitad + n < nFilas)
-						{
-							k++;
-							acumulador += input[i - mitad + m][j - mitad + n] * kernel[m][n];
-						}
-					}
-				}
-				output[i][j] = acumulador / k;
-			}
-		}
+	
 	
 }
 	
